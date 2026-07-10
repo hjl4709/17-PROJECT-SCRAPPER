@@ -44,13 +44,13 @@ def search_incruit(keyword, page=1):
 
 
     # 잡플래닛
-    for i in range(page):
-        jp_page = i + 1 
+    for i in range(page):   
+        jp_page = i 
         url_3 = f"https://www.jobplanet.co.kr/api/v3/search/postings?query={keyword}&page={jp_page}&page_size=9"
         
         r_3 = requests.get(url_3, headers=headers_1)
         api_data = r_3.json()
-        items = api_data.get("data", {}).get("items", [])
+        items = api_data.get("data", {}).get("items", [])[:2]
         
         if not items:
             break
