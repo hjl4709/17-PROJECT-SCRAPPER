@@ -48,8 +48,17 @@ def search_incruit(keyword, page=1):
         jp_page = i 
         url_3 = f"https://www.jobplanet.co.kr/api/v3/search/postings?query={keyword}&page={jp_page}&page_size=9"
         
-        r_3 = requests.get(url_3, headers=headers_1)
-        api_data = r_3.json()
+        try:
+            r_3 = requests.get(url_3, headers=headers_1, timeout=10)
+            if r_3.status_code != 200:
+                print(f"[경고] 잡플래닛 서버가 접속을 차단했습니다. 상태 코드: {r_3.status_code}")
+                break
+            api_data = r_3.json()
+            
+        except Exception as e:
+            print(f"[치명적 에러] 잡플래닛 요청 실패: {e}")
+            break
+
         items = api_data.get("data", {}).get("items", [])[:2]
         
         if not items:
