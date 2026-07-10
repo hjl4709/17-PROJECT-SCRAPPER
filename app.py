@@ -5,7 +5,7 @@ from file import save_to_csv
 app = Flask(__name__)
 
 db = {}
-page = 2
+
 
 @app.route('/')
 def hello_world():
@@ -16,30 +16,40 @@ def hello_world():
 
 def search():
     keyword = request.args.get("keyword")
+    page = int(request.args.get("page", 1))
 
     if keyword == "":
         return redirect("/")
     
-    if keyword in db:
-        jobs = db[keyword]
+    cache_key = f"{keyword}_{page}"
+    
+    if cache_key in db:
+        jobs = db[cache_key]
     else:
         jobs = search_incruit(keyword, page)
-        db[keyword] = jobs
+        db[cache_key] = jobs
    
-    return render_template("search.html", jobs=enumerate(jobs), keyword=keyword, count=len(jobs))       # jobs = jobs 첫번째 jobs는 search.html로 보내는 역할 
+    return render_template("search.html", jobs=enumerate(jobs), keyword=keyword, count=len(jobs), page=page)       # jobs = jobs 첫번째 jobs는 search.html로 보내는 역할 
 
 
 @app.route("/file")
 def file():
     keyword = request.args.get("keyword")
+    page = int(request.args.get("page", 1))
+
     if keyword == "":
         return redirect("/")
     
-    if keyword in db:
-        jobs = db[keyword]
+    cache_key = f"{keyword}_{page}"
+    
+    if cache_key in db:
+        jobs = db[cache_key]
     else:
         jobs = search_incruit(keyword, page)
-        db[keyword] = jobs
+        db[cache_key] = jobs
+        
+    save_to_csv(jobs)
+    return send_file("./downloads.csv", as_attachment=True)
         
     save_to_csv(jobs)
     return send_file("./downloads.csv", as_attachment=True)

@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask
 
 def search_incruit(keyword, page=1):
     headers_1 = {
@@ -12,54 +11,56 @@ def search_incruit(keyword, page=1):
 
     jobs = []
 
-    # 인크루트
+    # 1. 인크루트 크롤링
     for i in range(page):
-        page = 30 * (i)
-        url_1 = f"https://search.incruit.com/list/search.asp?col=job&kw={keyword}&startno={page}"
-        r_1 = requests.get(url_1)
+        start_no = 30 * i  
+        url_1 = f"https://search.incruit.com/list/search.asp?col=job&kw={keyword}&startno={start_no}"
+        
+        try:
+            r_1 = requests.get(url_1, headers=headers_1, timeout=10)
+            soup_1 = BeautifulSoup(r_1.text, "html.parser")
+            lis_1 = soup_1.find_all("li", class_="c_col")
+       
+            for li_1 in lis_1:
+                try:
+                    c_1 = li_1.find("a", class_="cpname").text.strip()
+                    t_1 = li_1.find("div", class_="cell_mid").find("div", class_="cl_top").find("a").text.strip()
+                    r_1 = li_1.find("div", class_="cl_md").find_all("span")[0].text.strip()
+                    l_1 = li_1.find("div", class_="cell_mid").find("div", class_="cl_top").find("a").get("href")
+                    d_1 = li_1.find('div', class_="cell_last").find("div", class_="cl_btm").find_all("span")[0].text.strip()
 
-        soup_1 = BeautifulSoup(r_1.text, "html.parser")
-        lis_1 = soup_1.find_all("li", class_="c_col")
-   
+                    job_data_1 = {
+                        "site": "인크루트",
+                        "company": c_1,
+                        "title": t_1,
+                        "region": r_1,
+                        "date": d_1,
+                        "link": l_1
+                    }
+                    jobs.append(job_data_1)
+                    
+                except Exception as e:
+                    continue
+                    
+        except Exception as e:
+            print(f"인크루트 페이지 연결/파싱 중 에러: {e}")
+            continue
 
-        for li_1 in lis_1:
-            c_1 = li_1.find("a", class_="cpname").text
-            t_1 = li_1.find("div", class_="cell_mid").find("div", class_="cl_top").find("a").text
-            r_1 = li_1.find("div", class_="cl_md").find_all("span")[0].text
-            l_1 = li_1.find("div", class_="cell_mid").find("div", class_="cl_top").find("a").get("href")
-            d_1 = li_1.find('div', class_="cell_last").find("div", class_="cl_btm").find_all("span")[0].text
-
-            job_data_1 = {
-                "site": "인크루트",
-                "company": c_1,
-                "title": t_1,
-                "region": r_1,
-                "date": d_1,
-                "link": l_1
-            }
-
-            jobs.append(job_data_1)
-
-
-
-
-    # 잡플래닛
-    for i in range(page):   
-        jp_page = i 
+    # 2. 잡플래닛 크롤링(API)
+    for i in range(page + 2):   
+        jp_page = i + 1  
         url_3 = f"https://www.jobplanet.co.kr/api/v3/search/postings?query={keyword}&page={jp_page}&page_size=9"
         
         try:
             r_3 = requests.get(url_3, headers=headers_1, timeout=10)
             if r_3.status_code != 200:
-                print(f"[경고] 잡플래닛 서버가 접속을 차단했습니다. 상태 코드: {r_3.status_code}")
                 break
             api_data = r_3.json()
             
         except Exception as e:
-            print(f"[치명적 에러] 잡플래닛 요청 실패: {e}")
             break
 
-        items = api_data.get("data", {}).get("items", [])[:2]
+        items = api_data.get("data", {}).get("items", [])
         
         if not items:
             break
