@@ -46,7 +46,7 @@ def search_incruit(keyword, page=1):
             print(f"인크루트 페이지 연결/파싱 중 에러: {e}")
             continue
 
-    # 2. 잡플래닛 크롤링(API)
+    # 3. 잡플래닛 크롤링(API)
     for i in range(page + 2):   
         jp_page = i + 1  
         url_3 = f"https://www.jobplanet.co.kr/api/v3/search/postings?query={keyword}&page={jp_page}&page_size=9"
@@ -71,9 +71,9 @@ def search_incruit(keyword, page=1):
                 t_3 = item.get("title", "제목 없음")
                 
                 cities = item.get("cities", [])
-                region_3 = cities[0] if cities else "지역 미상"
+                r_3 = cities[0] if cities else "지역 미상"
                 
-                date_3 = item.get("deadline_message") or item.get("end_at") or "기한 미상"
+                d_3 = item.get("deadline_message") or item.get("end_at") or "기한 미상"
                 
                 job_id = item.get("id", "")
                 l_3 = f"https://www.jobplanet.co.kr/job/search?posting_ids={job_id}"
@@ -82,14 +82,13 @@ def search_incruit(keyword, page=1):
                     "site": "잡플래닛",
                     "company": c_3,
                     "title": t_3,
-                    "region": region_3,
-                    "date": date_3,
+                    "region": r_3,
+                    "date": d_3,
                     "link": l_3
                 }
                 jobs.append(job_data_3)
                 
             except Exception as e:
-                print(f"잡플래닛 API 파싱 중 에러: {e}")
                 continue
             
     return jobs

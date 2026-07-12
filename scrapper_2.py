@@ -8,11 +8,11 @@ def search_incruit(keyword, page=1):
     jobs = []
     for i in range(page):
         page = 30 * (i)
-        url_2 = f"https://search.incruit.com/list/search.asp?col=job&kw={keyword}&startno={page}"
+        url_2 = f"https://www.jobkorea.co.kr/Search?stext={keyword}&tabType=recruit&Page_No={page}"
         r_2 = requests.get(url_2)
 
         soup_2 = BeautifulSoup(r_2.text, "html.parser")
-        lis_2 = soup_2.find_all("li", class_="c_col")
+        lis_2 = soup_2.find_all("div", class_="w_full")
    
 
         for li_2 in lis_2:
